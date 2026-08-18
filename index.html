@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NIA Chat Bot</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="avatar">N</div>
+      <div>
+        <h1>NIA</h1>
+        <p>Chat Bot • Test Version</p>
+      </div>
+      <span class="status">● Online</span>
+    </header>
+
+    <section id="chat" class="chat" aria-live="polite">
+      <div class="message nia">
+        <strong>NIA</strong>
+        <p>Hi! I'm NIA. This is the first test version. Ask me something.</p>
+      </div>
+    </section>
+
+    <form id="chat-form" class="composer">
+      <input id="message" autocomplete="off" placeholder="Type a message..." aria-label="Message">
+      <button type="submit">Send</button>
+    </form>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
