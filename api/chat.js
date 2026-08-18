@@ -1,7 +1,7 @@
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
 });
 
 export default async function handler(req, res) {
@@ -16,22 +16,26 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No message was supplied." });
     }
 
-    const response = await client.responses.create({
-      model: "gpt-5.6",
-      instructions:
-        "You are NIA, a helpful and friendly AI chat bot. " +
-        "Answer naturally and clearly. Keep replies reasonably concise.",
-      input: messages,
+    const recent = messages.slice(-20);
+
+    const prompt = recent
+      .map((m) => `${m.role === "user" ? "User" : "NIA"}: ${m.content}`)
+      .join("\n");
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.6-flash",
+      contents: prompt,
     });
 
     return res.status(200).json({
-      reply: response.output_text || "I couldn't generate a reply.",
+      reply: response.text || "I couldn't generate a reply.",
     });
+
   } catch (error) {
     console.error(error);
 
     return res.status(500).json({
-      error: "The AI service could not respond.",
+      error: "Gemini could not respond.",
     });
   }
 }
