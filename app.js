@@ -1,6 +1,9 @@
 const form = document.getElementById("chat-form");
 const input = document.getElementById("message");
 const chat = document.getElementById("chat");
+const sendButton = document.getElementById("send-button");
+
+const conversation = [];
 
 function addMessage(who, text) {
   const div = document.createElement("div");
@@ -11,20 +14,47 @@ function addMessage(who, text) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-function niaReply(text) {
-  const q = text.toLowerCase();
-  if (q.includes("hello") || q.includes("hi")) return "Hello! I'm NIA. The chat test is working.";
-  if (q.includes("who are you")) return "I'm NIA, your test chatbot.";
-  if (q.includes("test")) return "Test received. NIA is responding correctly.";
-  if (q.includes("help")) return "Try saying hello, asking who I am, or typing 'test'.";
-  return `I received: "${text}". The basic NIA chat is working.`;
+async function askNia(text) {
+  conversation.push({ role: "user", content: text });
+
+  // Keep the request small and preserve recent conversation context.
+  const recent = conversation.slice(-20);
+
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages: recent })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "NIA could not respond.");
+  }
+
+  conversation.push({ role: "assistant", content: data.reply });
+  return data.reply;
 }
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
+
   const text = input.value.trim();
-  if (!text) return;
+  if (!text || sendButton.disabled) return;
+
   addMessage("You", text);
   input.value = "";
-  setTimeout(() => addMessage("NIA", niaReply(text)), 350);
+  sendButton.disabled = true;
+  sendButton.textContent = "Thinking…";
+
+  try {
+    const reply = await askNia(text);
+    addMessage("NIA", reply);
+  } catch (error) {
+    addMessage("NIA", `Sorry, I couldn't connect right now. ${error.message}`);
+  } finally {
+    sendButton.disabled = false;
+    sendButton.textContent = "Send";
+    input.focus();
+  }
 });
